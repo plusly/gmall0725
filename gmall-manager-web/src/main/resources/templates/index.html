@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+        <link rel="stylesheet" type="text/css" href="/easyui/themes/default/easyui.css">
+        <link rel="stylesheet" type="text/css" href="/easyui/themes/icon.css">
+        <script type="text/javascript" src="/easyui/jquery.min.js"></script>
+        <script type="text/javascript" src="/easyui/jquery.easyui.min.js"></script>
+        <script type="text/javascript" src="/easyui/datagrid-detailview.js"></script>
+        <script type="text/javascript" src="/webuploader/webuploader.js"></script>
+    </head>
+    <body class="easyui-layout">
+
+        <div data-options="region:'north',border:false" style="height:60px;background:#B3DFDA;padding:10px">
+            <p style="font-size: medium">后台商品管理系统</p><br/>
+        </div>
+        <div data-options="region:'west',split:true,title:'West'" style="width:250px;padding:10px;">
+            <div class="easyui-accordion" style="width:225px;height:300px;">
+                <div title="About" data-options="iconCls:'icon-ok'" style="overflow:auto;padding:10px;">
+                    <p><a href="javascript:add_tab('商品属性管理','attrListPage');">商品属性管理</a></p>
+                </div>
+                <div title="Help" data-options="iconCls:'icon-help'" selected="true" style="padding:10px;">
+                    <p><a href="javascript:add_tab('SPU管理','spuListPage');">SPU管理</a></p>
+                </div>
+                <div title="TreeMenu" data-options="iconCls:'icon-search'" style="padding:10px;">
+                    <p>仓库接口管理</p>
+                </div>
+            </div>
+        </div>
+        <div data-options="region:'south',split:true" style="height:50px;background:#A9FACD;padding:10px;"></div>
+        <div data-options="region:'east',split:true" title="East" style="width:250px;padding:10px;"></div>
+        <div data-options="region:'center',title:'Center'">
+            <div class="easyui-tabs" id="tt" ></div>
+        </div>
+
+        <script language="JavaScript">
+            function add_tab(title,url) {
+                var b = $("#tt").tabs('exists',title);
+                if(!b){
+                    $("#tt").tabs('add',{
+                        title:title,
+                        href:url,
+                        closable:true,
+                        tools:[{
+                            iconCls:'icon-mini-refresh',
+                            handler:function(){
+                                alert('refresh');
+                            }
+                        }]
+                    });
+                }else{
+                    $("#tt").tabs('select',title);
+                }
+
+            }
+
+        </script>
+    </body>
+</html>

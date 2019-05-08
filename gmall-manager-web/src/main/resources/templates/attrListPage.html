@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+    </head>
+    <body>
+    <table id="dg" class="easyui-datagrid" title="Basic DataGrid"
+           data-options="singleSelect:true,collapsible:true,method:'get',toolbar:'#tb'">
+        <thead>
+        <tr>
+            <th data-options="field:'id',width:80">属性ID</th>
+            <th data-options="field:'attrName',width:150">属性名</th>
+        </tr>
+        </thead>
+    </table>
+
+    <div id="tb">
+        <a id="btn" href="javascript:addAttrInfo();" class="easyui-linkbutton" data-options="iconCls:'icon-add'">添加</a>
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove'">删除</a>
+        <a href="javascript:editAttrInfo();" class="easyui-linkbutton" data-options="iconCls:'icon-edit'">编辑</a>
+        <br/>
+        一级分类<select id="ctg1ForAttrList" class="easyui-combobox" name="dept" style="width:100px;"
+                    data-options="valueField: 'id',textField: 'name',url: '/getAllCatalog1',onSelect: function(rec){
+                var url = '/getAllCatalog2?ctg1Id='+rec.id;
+                $('#ctg2ForAttrList').combobox('clear');
+                $('#ctg3ForAttrList').combobox('clear');
+                $('#ctg2ForAttrList').combobox('reload', url); }">
+                </select>
+        二级分类<select id="ctg2ForAttrList" class="easyui-combobox" name="dept" style="width:100px;"
+                    data-options="valueField: 'id',textField: 'name',onSelect: function(rec){
+                var url = '/getAllCatalog3?ctg2Id='+rec.id;
+                $('#ctg3ForAttrList').combobox('clear');
+                $('#ctg3ForAttrList').combobox('reload', url); }">
+                </select>
+        三级分类<select id="ctg3ForAttrList" class="easyui-combobox" name="dept" style="width:100px;"
+                    data-options="valueField:'id',textField:'name'">
+                </select>
+        <a href="javascript:reloadAttrList();" class="easyui-linkbutton" data-options="iconCls:'icon-search'">刷新属性列表</a>
+    </div>
+
+    <div id="dlg" buttons="#bb" class="easyui-dialog" title="My Dialog" style="width:600px;height:500px;" data-options="iconCls:'icon-save',closed:true">
+        <form id="ff" method="post">
+            <br>
+            <div>
+                <label>属性名称：</label>
+                <input id="attrName" class="easyui-validatebox" type="text" name="attrName" data-options="required:true" />
+            </div>
+            <br><br>
+            <table id="dg_av" class="easyui-datagrid" title="属性值列表"></table>
+        </form>
+    </div>
+
+    <div id="bb">
+        <a href="#" class="easyui-linkbutton" onclick="saveAttr()">保存</a>
+        <a href="#" class="easyui-linkbutton">关闭</a>
+    </div>
+
+
+    <script type="text/javascript">
+        function editAttrInfo() {
+            var catalog3Id = $("#ctg3ForAttrList").combobox("getValue");
+            if(!catalog3Id){
+                alert("你没有选择三级分类");
+            }else {
+                var row = $("#dg").datagrid("getSelected");
+                if (row) {
+                    $("#dlg").dialog("open");
+
+                    $("#attrName").val("");
+                    $('#dg_av').datagrid('loadData', { total: 0, rows: [] });
+
+                    //initAttrValueDatagrid_edit(row.id, row.attrName);
+                    $("#attrName").val(row.attrName);
+                    var url = "getAttrValue?attrInfoId=" + row.id;
+                    initAttrValueDatagrid(url);
+                }
+            }
+        }
+
+        function saveAttr(){
+            var catalog3Id = $("#ctg3ForAttrList").combobox("getValue");
+            if(!catalog3Id){
+                alert("你没有选择三级分类");
+            }else{
+                var attrInfo = {};
+                attrInfo["attrName"] = $("#attrName").val();
+                attrInfo["catalog3Id"] = catalog3Id;
+
+                var attrRows = $("#dg_av").datagrid("getRows");
+                $(attrRows).each(function (i,row) {
+                    attrInfo["attrValueList["+i+"].valueName"] = row.valueName;
+                });
+
+                $.post("saveAttr",attrInfo,function (data) {
+                    alert(data);
+                    $("#dlg").dialog("close");
+                    $("#dg").datagrid("reload");
+                },"text");
+            }
+        }
+
+        function addAttrInfo(){
+            var catalog3Id = $("#ctg3ForAttrList").combobox("getValue");
+
+            if(!catalog3Id){
+                alert("你没有选择三级分类");
+            }else{
+                $("#dlg").dialog("open");
+
+                $("#attrName").val("");
+                $('#dg_av').datagrid('loadData', { total: 0, rows: [] });
+
+                initAttrValueDatagrid();
+            }
+        }
+
+        function initAttrValueDatagrid(url){
+            datagrid = $('#dg_av').datagrid({
+                url:url,
+                columns:[[
+                    {field:'id',title:'属性ID',width:100},
+                    {field: 'valueName', title: '属性名称', width: 200,
+                        editor: {
+                            type: 'validatebox',
+                            options: {required: true}
+                        }
+                    }
+                ]],
+
+                toolbar: [{
+                    text:'添加',
+                    iconCls: 'icon-add',
+                    handler: function(){
+                        $('#dg_av').datagrid("appendRow",{
+                            id:'0',
+                            valueName:'新属性值'
+                        })
+                    }
+                },'-',{
+                    text:'删除',
+                    iconCls: 'icon-remove',
+                    handler: function(){
+                        var row = $('#dg_av').datagrid("getSelected");
+                        var index = $('#dg_av').datagrid("getRowIndex",row);
+                        $('#dg_av').datagrid("deleteRow",index);
+                        $.post("aaaa",{"id":row.id},function (response) {
+                            alert(1);
+                        })
+                    }
+                }],
+                onDblClickCell:function (rowIndex, rowData) {
+                    datagrid.datagrid("beginEdit",rowIndex);
+                    //设定当失去焦点时,退出编辑状态
+                    var valueName = rowData.valueName;
+                    $("input.datagrid-editable-input").val(valueName).bind("blur", function (evt) {
+                        datagrid.datagrid('endEdit', rowIndex);
+                    });
+                }
+            });
+        }
+
+        function reloadAttrList() {
+            var catalog3Id = $("#ctg3ForAttrList").combobox("getValue");
+
+            if(!catalog3Id){
+                alert("你没有选择三级分类");
+            }else{
+                var url = "getAttrList?ctg3Id="+catalog3Id;
+                $("#dg").datagrid({url:url});
+            }
+        }
+
+    </script>
+
+    </body>
+</html>
